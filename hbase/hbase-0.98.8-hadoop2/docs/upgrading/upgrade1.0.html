@@ -1,0 +1,55 @@
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+   <title>1.2.&nbsp;Upgrading from 0.98.x to 1.0.x</title><link rel="stylesheet" type="text/css" href="../css/freebsd_docbook.css"><meta name="generator" content="DocBook XSL-NS Stylesheets V1.76.1"><link rel="home" href="upgrading.html" title="Chapter&nbsp;1.&nbsp;Upgrading"><link rel="up" href="upgrading.html" title="Chapter&nbsp;1.&nbsp;Upgrading"><link rel="prev" href="upgrading.html" title="Chapter&nbsp;1.&nbsp;Upgrading"><link rel="next" href="upgrade0.98.html" title="1.3.&nbsp;Upgrading from 0.96.x to 0.98.x"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">1.2.&nbsp;Upgrading from 0.98.x to 1.0.x</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="upgrading.html">Prev</a>&nbsp;</td><th width="60%" align="center">&nbsp;</th><td width="20%" align="right">&nbsp;<a accesskey="n" href="upgrade0.98.html">Next</a></td></tr></table><hr></div><script type="text/javascript">
+    var disqus_shortname = 'hbase'; // required: replace example with your forum shortname
+    var disqus_url = 'http://hbase.apache.org/book/upgrade1.0.html';
+    </script><div class="section" title="1.2.&nbsp;Upgrading from 0.98.x to 1.0.x"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="upgrade1.0"></a>1.2.&nbsp;Upgrading from 0.98.x to 1.0.x</h2></div></div></div><p>In this section we first note the significant changes that come in with 1.0.0 HBase and then
+          we go over the upgrade process.  Be sure to read the significant changes section with care
+          so you avoid surprises.
+        </p><div class="section" title="1.2.1.&nbsp;Changes of Note!"><div class="titlepage"><div><div><h3 class="title"><a name="upgrade1.0.changes"></a>1.2.1.&nbsp;Changes of Note!</h3></div></div></div><p>In here we list important changes that are in 1.0.0 since 0.98.x., changes you should
+            be aware that will go into effect once you upgrade.</p><div class="section" title="1.2.1.1.&nbsp;ZooKeeper 3.4 is required in HBase 1.0.0"><div class="titlepage"><div><div><h4 class="title"><a name="zookeeper.3.4"></a>1.2.1.1.&nbsp;ZooKeeper 3.4 is required in HBase 1.0.0</h4></div></div></div><p>See <a class="xref" href="">???</a>.</p></div><div class="section" title="1.2.1.2.&nbsp;HBase Default Ports Changed"><div class="titlepage"><div><div><h4 class="title"><a name="default.ports.changed"></a>1.2.1.2.&nbsp;HBase Default Ports Changed</h4></div></div></div><p>The ports used by HBase changed.  The used to be in the 600XX range.  In
+                hbase-1.0.0 they have been moved up out of the ephemeral port range and are
+                160XX instead (Master web UI was 60010 and is now 16030; the RegionServer
+                web UI was 60030 and is now 16030, etc). If you want to keep the old port
+                locations, copy the port setting configs from <code class="filename">hbase-default.xml</code>
+                into <code class="filename">hbase-site.xml</code>, change them back to the old values
+                from hbase-0.98.x era, and ensure you've distributed your configurations before
+              you restart.</p></div><div class="section" title="1.2.1.3.&nbsp;hbase.bucketcache.percentage.in.combinedcache configuration has been REMOVED"><div class="titlepage"><div><div><h4 class="title"><a name="upgrade1.0.hbase.bucketcache.percentage.in.combinedcache"></a>1.2.1.3.&nbsp;hbase.bucketcache.percentage.in.combinedcache configuration has been REMOVED</h4></div></div></div><p>You may have made use of this configuration if you are using BucketCache.
+                    If NOT using BucketCache, this change does not effect you.
+                    Its removal means that your L1 LruBlockCache is now sized
+                    using <code class="varname">hfile.block.cache.size</code> -- i.e. the way you
+                    would size the onheap L1 LruBlockCache if you were NOT doing
+                    BucketCache -- and the BucketCache size is not whatever the
+                    setting for hbase.bucketcache.size is.  You may need to adjust
+                    configs to get the LruBlockCache and BucketCache sizes set to
+                    what they were in 0.98.x and previous.  If you did not set this
+                    config., its default value was 0.9.  If you do nothing, your
+                    BucketCache will increase in size by 10%.  Your L1 LruBlockCache will
+                    become <code class="varname">hfile.block.cache.size</code> times your java
+                    heap size (hfile.block.cache.size is a float between 0.0 and 1.0).
+                    To read more, see
+                    <a class="link" href="https://issues.apache.org/jira/browse/HBASE-11520" target="_top">HBASE-11520 Simplify offheap cache config by removing the confusing "hbase.bucketcache.percentage.in.combinedcache"</a>.
+                </p></div><div class="section" title="1.2.1.4.&nbsp;If you have your own customer filters...."><div class="titlepage"><div><div><h4 class="title"><a name="hbase-12068"></a>1.2.1.4.&nbsp;If you have your own customer filters....</h4></div></div></div><p>See the release notes on the issue <a class="link" href="https://issues.apache.org/jira/browse/HBASE-12068" target="_top">HBASE-12068 [Branch-1] Avoid need to always do KeyValueUtil#ensureKeyValue for Filter transformCell</a>;
+              be sure to follow the recommendations therein.
+            </p></div></div><div class="section" title="1.2.2.&nbsp;Rolling upgrade from 0.98.x to HBase 1.0.0"><div class="titlepage"><div><div><h3 class="title"><a name="upgrade1.0.rolling.upgrade"></a>1.2.2.&nbsp;Rolling upgrade from 0.98.x to HBase 1.0.0</h3></div></div></div><div class="note" title="From 0.96.x to 1.0.0" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">From 0.96.x to 1.0.0</h3><p>You cannot do a <span style="color: red">&lt;xlink&gt;&lt;/xlink&gt;</span> from 0.96.x to 1.0.0 without
+              first doing a rolling upgrade to 0.98.x. See comment in
+              <a class="link" href="https://issues.apache.org/jira/browse/HBASE-11164?focusedCommentId=14182330&amp;page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-14182330" target="_top">HBASE-11164 Document and test rolling updates from 0.98 -&gt; 1.0</a> for the why.
+              Also because hbase-1.0.0 enables hfilev3 by default,
+              <a class="link" href="https://issues.apache.org/jira/browse/HBASE-9801" target="_top">HBASE-9801 Change the default HFile version to V3</a>,
+              and support for hfilev3 only arrives in 0.98, this is another reason you cannot rolling upgrade from hbase-0.96.x;
+              if the rolling upgrade stalls, the 0.96.x servers cannot open files written by the servers running the newer hbase-1.0.0
+              hfilev3 writing servers.
+            </p></div><p>There are no known issues running a <span style="color: red">&lt;xlink&gt;&lt;/xlink&gt;</span> from hbase-0.98.x to hbase-1.0.0.
+          
+          </p></div><div class="section" title="1.2.3.&nbsp;Upgrading to 1.0 from 0.94"><div class="titlepage"><div><div><h3 class="title"><a name="upgrade1.0.from.0.94"></a>1.2.3.&nbsp;Upgrading to 1.0 from 0.94</h3></div></div></div><p>You cannot rolling upgrade from 0.94.x to 1.x.x.  You must stop your cluster,
+            install the 1.x.x software, run the migration described at <a class="xref" href="upgrade0.96.html#executing.the.0.96.upgrade" title="1.5.1.&nbsp;Executing the 0.96 Upgrade">Section&nbsp;1.5.1, &#8220;Executing the 0.96 Upgrade&#8221;</a>
+            (substituting 1.x.x. wherever we make mention of 0.96.x in the section below),
+            and then restart.  Be sure to upgrade your zookeeper if it is a version less than the required 3.4.x.
+          </p></div></div><div id="disqus_thread"></div><script type="text/javascript">
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript><a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="upgrading.html">Prev</a>&nbsp;</td><td width="20%" align="center">&nbsp;</td><td width="40%" align="right">&nbsp;<a accesskey="n" href="upgrade0.98.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">Chapter&nbsp;1.&nbsp;Upgrading&nbsp;</td><td width="20%" align="center"><a accesskey="h" href="upgrading.html">Home</a></td><td width="40%" align="right" valign="top">&nbsp;1.3.&nbsp;Upgrading from 0.96.x to 0.98.x</td></tr></table></div></body></html>
