@@ -6,6 +6,9 @@ LABEL maintainer="Yago Lima <yagotoledolima@gmail.com>"
 
 ENV NUTCH_JAVA_HOME=$JAVA_HOME
 
+RUN apt-get update && \
+	apt-get install -y bash
+
 WORKDIR /opt
 
 RUN wget http://mirror.nbtelecom.com.br/apache/nutch/$NUTCH_VERSION/apache-nutch-$NUTCH_VERSION-src.zip && \
